@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import mockit.Injectable;
+import mockit.Tested;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
@@ -135,19 +137,20 @@ public class TestSPIServiceUtils {
     }
   }
 
+  @Tested
+  ServiceLoader<PriorityIntf> serviceLoader = ServiceLoader.load(PriorityIntf.class);;
+  @Injectable LinkedHashMap<String, PriorityIntf> providers = new LinkedHashMap<>();
+  {
+    providers.putIfAbsent("1", new PriorityImpl("n1", 0));
+    providers.putIfAbsent("2", new PriorityImpl("n1", -1));
+    providers.putIfAbsent("3", new PriorityImpl("n1", 1));
+    providers.putIfAbsent("4", new PriorityImpl("n2", 0));
+    providers.putIfAbsent("5", new PriorityImpl("n2", -1));
+    providers.putIfAbsent("6", new PriorityImpl("n2", 1));
+  }
   @Test
   @EnabledOnJre(JRE.JAVA_8)
   public void getPriorityHighestServices() {
-    Map<String, PriorityIntf> instances = new LinkedHashMap<>();
-    instances.putIfAbsent("1", new PriorityImpl("n1", 0));
-    instances.putIfAbsent("2", new PriorityImpl("n1", -1));
-    instances.putIfAbsent("3", new PriorityImpl("n1", 1));
-    instances.putIfAbsent("4", new PriorityImpl("n2", 0));
-    instances.putIfAbsent("5", new PriorityImpl("n2", -1));
-    instances.putIfAbsent("6", new PriorityImpl("n2", 1));
-
-    ServiceLoader<PriorityIntf> serviceLoader = ServiceLoader.load(PriorityIntf.class);
-    Deencapsulation.setField(serviceLoader, "providers", instances);
     new Expectations(ServiceLoader.class) {
       {
         ServiceLoader.load(PriorityIntf.class);
@@ -156,7 +159,7 @@ public class TestSPIServiceUtils {
     };
 
     MatcherAssert.assertThat(SPIServiceUtils.getPriorityHighestServices(PriorityIntf::getName, PriorityIntf.class),
-            Matchers.containsInAnyOrder(instances.get("2"), instances.get("5")));
+            Matchers.containsInAnyOrder(providers.get("2"), providers.get("5")));
 
     Map<Class<?>, List<Object>> cache = Deencapsulation.getField(SPIServiceUtils.class, "cache");
     cache.clear();
