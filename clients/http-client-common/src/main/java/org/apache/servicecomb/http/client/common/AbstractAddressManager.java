@@ -56,7 +56,8 @@ public class AbstractAddressManager {
 
   private static final int ISOLATION_THRESHOLD = 3;
 
-  private List<String> addresses = new ArrayList<>();
+  @VisibleForTesting
+  public List<String> addresses = new ArrayList<>();
 
   private int index = 0;
 
@@ -64,13 +65,16 @@ public class AbstractAddressManager {
 
   private final Map<String, Boolean> categoryMap = new HashMap<>();
 
-  private final Map<String, Integer> recodeStatus = new ConcurrentHashMap<>();
+  @VisibleForTesting
+  protected final Map<String, Integer> recodeStatus = new ConcurrentHashMap<>();
 
   private final Map<String, Boolean> history = new ConcurrentHashMap<>();
 
-  private volatile List<String> availableZone = new ArrayList<>();
+  @VisibleForTesting
+  public volatile List<String> availableZone = new ArrayList<>();
 
-  private volatile List<String> availableRegion = new ArrayList<>();
+  @VisibleForTesting
+  public volatile List<String> availableRegion = new ArrayList<>();
 
   private final List<String> defaultAddress = new ArrayList<>();
 
@@ -83,7 +87,8 @@ public class AbstractAddressManager {
           .setNameFormat("check-available-address-%d")
           .build());
 
-  private final Cache<String, Boolean> cacheAddress = CacheBuilder.newBuilder()
+  @VisibleForTesting
+  protected final Cache<String, Boolean> cacheAddress = CacheBuilder.newBuilder()
       .maximumSize(100)
       .expireAfterWrite(10, TimeUnit.MINUTES)
       .build();
