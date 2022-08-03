@@ -17,6 +17,7 @@
 
 package org.apache.servicecomb.loadbalance;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,10 +35,6 @@ import org.mockito.Mockito;
 
 import com.netflix.loadbalancer.LoadBalancerStats;
 import com.netflix.loadbalancer.Server;
-
-import mockit.Deencapsulation;
-import mockit.Mock;
-import mockit.MockUp;
 
 public class TestSessionSticknessRule {
 
@@ -73,30 +70,21 @@ public class TestSessionSticknessRule {
 
     boolean status = true;
 
-    SessionStickinessRule ss = new SessionStickinessRule();
+    SessionStickinessRule ss = Mockito.spy(new SessionStickinessRule());
 
     Invocation invocation = mock(Invocation.class);
     ServiceCombServer server = mock(ServiceCombServer.class);
     List<ServiceCombServer> servers = new ArrayList<>();
     servers.add(server);
 
-    Deencapsulation.setField(ss, "lastServer", server);
+    ss.setLastServer(server);
 
-    new MockUp<SessionStickinessRule>() {
-
-      @Mock
-      private boolean isTimeOut() {
-        return false;
-      }
-    };
-
-    new MockUp<SessionStickinessRule>() {
-
-      @Mock
-      private boolean isErrorThresholdMet() {
-        return true;
-      }
-    };
+    LoadBalancer mockedLb = mock(LoadBalancer.class);
+    ss.setLoadBalancer(mockedLb);
+    LoadBalancerStats stats = mock(LoadBalancerStats.class);
+    Mockito.when(mockedLb.getLoadBalancerStats()).thenReturn(stats);
+    Mockito.when(ss.isTimeOut()).thenReturn(false);
+    Mockito.doReturn(true).when(ss).isErrorThresholdMet();
 
     try {
       ss.choose(servers, invocation);
@@ -111,22 +99,16 @@ public class TestSessionSticknessRule {
 
     boolean status = true;
 
-    SessionStickinessRule ss = new SessionStickinessRule();
+    SessionStickinessRule ss = Mockito.spy(new SessionStickinessRule());
 
     Invocation invocation = mock(Invocation.class);
     ServiceCombServer server = mock(ServiceCombServer.class);
     List<ServiceCombServer> servers = new ArrayList<>();
     servers.add(server);
 
-    Deencapsulation.setField(ss, "lastServer", server);
+    ss.setLastServer(server);
 
-    new MockUp<SessionStickinessRule>() {
-
-      @Mock
-      private boolean isTimeOut() {
-        return true;
-      }
-    };
+    Mockito.doReturn(true).when(ss).isTimeOut();
 
     try {
       ss.choose(servers, invocation);
@@ -142,22 +124,16 @@ public class TestSessionSticknessRule {
 
     boolean status = true;
 
-    SessionStickinessRule ss = new SessionStickinessRule();
+    SessionStickinessRule ss = Mockito.spy(new SessionStickinessRule());
 
     Invocation invocation = mock(Invocation.class);
     ServiceCombServer server = mock(ServiceCombServer.class);
     List<ServiceCombServer> servers = new ArrayList<>();
     servers.add(server);
 
-    Deencapsulation.setField(ss, "lastServer", server);
+    ss.setLastServer(server);
 
-    new MockUp<SessionStickinessRule>() {
-
-      @Mock
-      private boolean isTimeOut() {
-        return false;
-      }
-    };
+    Mockito.doReturn(false).when(ss).isTimeOut();
 
     try {
       ss.choose(servers, invocation);
@@ -172,39 +148,18 @@ public class TestSessionSticknessRule {
 
     boolean status = true;
 
-    SessionStickinessRule ss = new SessionStickinessRule();
+    SessionStickinessRule ss = Mockito.spy(new SessionStickinessRule());
 
     Invocation invocation = mock(Invocation.class);
     ServiceCombServer server = mock(ServiceCombServer.class);
     List<ServiceCombServer> servers = new ArrayList<>();
     servers.add(server);
 
-    Deencapsulation.setField(ss, "lastServer", server);
+    ss.setLastServer(server);
 
-    new MockUp<SessionStickinessRule>() {
+    Mockito.doReturn(false).when(ss).isTimeOut();
 
-      @Mock
-      private boolean isTimeOut() {
-        return false;
-      }
-    };
-
-    new MockUp<SessionStickinessRule>() {
-
-      @Mock
-      private boolean isErrorThresholdMet() {
-        return false;
-      }
-    };
-
-    new MockUp<SessionStickinessRule>() {
-
-      @Mock
-      private boolean isLastServerExists(Server server) {
-        return true;
-      }
-    };
-
+    Mockito.doReturn(false).when(ss).isErrorThresholdMet();
     try {
       ss.choose(servers, invocation);
     } catch (Exception e) {
@@ -224,7 +179,7 @@ public class TestSessionSticknessRule {
     List<ServiceCombServer> servers = new ArrayList<>();
     servers.add(server);
 
-    Deencapsulation.setField(ss, "lastServer", server);
+    ss.setLastServer(server);
     try {
       ss.choose(servers, invocation);
     } catch (Exception e) {
@@ -235,7 +190,7 @@ public class TestSessionSticknessRule {
 
   @Test
   public void testLastServerNotExist() {
-    SessionStickinessRule rule = new SessionStickinessRule();
+    SessionStickinessRule rule = Mockito.spy(new SessionStickinessRule());
 
     Transport transport = mock(Transport.class);
     Invocation invocation = mock(Invocation.class);
@@ -251,19 +206,11 @@ public class TestSessionSticknessRule {
     when(invocation.getLocalContext(LoadbalanceHandler.CONTEXT_KEY_SERVER_LIST)).thenReturn(allServers);
     rule.setLoadBalancer(lb);
     ServiceCombServer server = new ServiceCombServer(null, transport, new CacheEndpoint("rest:127.0.0.1:8890", instance1));
-    Deencapsulation.setField(rule, "lastServer", server);
+    rule.setLastServer(server);
 
-    new MockUp<SessionStickinessRule>(rule) {
-      @Mock
-      private boolean isTimeOut() {
-        return false;
-      }
+    Mockito.doReturn(false).when(rule).isTimeOut();
 
-      @Mock
-      private boolean isErrorThresholdMet() {
-        return false;
-      }
-    };
+    Mockito.doReturn(false).when(rule).isErrorThresholdMet();
     Server s = rule.choose(allServers, invocation);
     Assertions.assertEquals(mockedServer, s);
   }

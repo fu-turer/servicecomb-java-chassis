@@ -22,7 +22,6 @@ import java.util.List;
 import org.apache.servicecomb.config.ConfigUtil;
 import org.apache.servicecomb.foundation.test.scaffolding.config.ArchaiusUtils;
 
-import mockit.Deencapsulation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,12 +31,12 @@ public class TestExtensionsManager {
   @BeforeEach
   public void setUp() {
     ConfigUtil.createLocalConfig();
-    Deencapsulation.setField(ExtensionsManager.class, "extentionFactories", new ArrayList<>());
+    ExtensionsManager.setExtentionFactories(new ArrayList<>());
   }
 
   @AfterEach
   public void tearDown() {
-    Deencapsulation.setField(ExtensionsManager.class, "extentionFactories", new ArrayList<>());
+    ExtensionsManager.setExtentionFactories(new ArrayList<>());
     ArchaiusUtils.resetConfig();
   }
 
@@ -51,7 +50,7 @@ public class TestExtensionsManager {
     BeansHolder holder = new BeansHolder();
     List<ExtensionsFactory> extensionsFactories = new ArrayList<>();
     extensionsFactories.add(new RuleNameExtentionsFactory());
-    Deencapsulation.setField(holder, "extentionsFactories", extensionsFactories);
+    holder.setExtentionsFactories(extensionsFactories);
     holder.init();
 
     Assertions.assertEquals(RoundRobinRuleExt.class.getName(),
@@ -75,7 +74,7 @@ public class TestExtensionsManager {
     BeansHolder holder = new BeansHolder();
     List<ExtensionsFactory> extensionsFactories = new ArrayList<>();
     extensionsFactories.add(new RuleNameExtentionsFactory());
-    Deencapsulation.setField(holder, "extentionsFactories", extensionsFactories);
+    holder.setExtentionsFactories(extensionsFactories);
     holder.init();
   }
 }

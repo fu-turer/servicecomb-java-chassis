@@ -19,6 +19,7 @@ package org.apache.servicecomb.loadbalance;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,11 @@ public class ExtensionsManager {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionsManager.class);
 
   private static List<ExtensionsFactory> extentionFactories = new ArrayList<>();
+
+  @VisibleForTesting
+  static void setExtentionFactories(List<ExtensionsFactory> extentionFactories) {
+    ExtensionsManager.extentionFactories = extentionFactories;
+  }
 
   public static void addExtentionsFactory(ExtensionsFactory factory) {
     extentionFactories.add(factory);

@@ -56,6 +56,21 @@ public class SessionStickinessRule implements RuleExt {
     triggerRule = new RoundRobinRuleExt();
   }
 
+  @VisibleForTesting
+  long getLastAccessedTime() {
+    return lastAccessedTime;
+  }
+
+  @VisibleForTesting
+  void setLastAccessedTime(long lastAccessedTime) {
+    this.lastAccessedTime = lastAccessedTime;
+  }
+
+  @VisibleForTesting
+  void setLastServer(ServiceCombServer lastServer) {
+    this.lastServer = lastServer;
+  }
+
   public void setLoadBalancer(LoadBalancer loadBalancer) {
     this.microserviceName = loadBalancer.getMicroServiceName();
     this.loadBalancer = loadBalancer;
@@ -96,14 +111,16 @@ public class SessionStickinessRule implements RuleExt {
     return lastServer;
   }
 
-  private boolean isTimeOut() {
+  @VisibleForTesting
+  boolean isTimeOut() {
     return Configuration.INSTANCE.getSessionTimeoutInSeconds(microserviceName) > 0
         && System.currentTimeMillis()
         - this.lastAccessedTime > ((long) Configuration.INSTANCE.getSessionTimeoutInSeconds(microserviceName)
         * MILLI_COUNT_IN_SECOND);
   }
 
-  private boolean isErrorThresholdMet() {
+  @VisibleForTesting
+  boolean isErrorThresholdMet() {
     LoadBalancerStats stats = loadBalancer.getLoadBalancerStats();
 
     if (stats != null && stats.getServerStats() != null && stats.getServerStats().size() > 0) {
