@@ -47,10 +47,9 @@ import com.netflix.config.DynamicConfiguration;
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.config.DynamicWatchedConfiguration;
 
-import mockit.Expectations;
-import mockit.Mock;
-import mockit.MockUp;
 import org.junit.jupiter.api.Assertions;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 public class TestConfigUtil {
   private static final String systemPropertyName = "servicecomb.cse.servicecomb.system.setting";
@@ -355,22 +354,17 @@ public class TestConfigUtil {
   @Test
   public void destroyConfigCenterConfigurationSource() {
     AtomicInteger count = new AtomicInteger();
-    ConfigCenterConfigurationSource source = new MockUp<ConfigCenterConfigurationSource>() {
-      @Mock
-      void destroy() {
-        count.incrementAndGet();
-      }
-    }.getMockInstance();
 
-    new Expectations(SPIServiceUtils.class) {
-      {
-        SPIServiceUtils.getAllService(ConfigCenterConfigurationSource.class);
-        result = Arrays.asList(source, source);
-      }
-    };
+    ConfigCenterConfigurationSource source = Mockito.mock(ConfigCenterConfigurationSource.class);
+    Mockito.doAnswer(a -> count.incrementAndGet()).when(source).destroy();
 
-    ConfigUtil.destroyConfigCenterConfigurationSource();
+    try (MockedStatic<SPIServiceUtils> spiServiceUtilsMockedStatic = Mockito.mockStatic(SPIServiceUtils.class)) {
+      spiServiceUtilsMockedStatic.when(() -> SPIServiceUtils.getAllService(ConfigCenterConfigurationSource.class))
+                      .thenReturn(Arrays.asList(source, source));
 
-    Assertions.assertEquals(2, count.get());
+      ConfigUtil.destroyConfigCenterConfigurationSource();
+
+      Assertions.assertEquals(2, count.get());
+    }
   }
 }
